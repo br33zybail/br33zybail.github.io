@@ -1,0 +1,477 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Diagram from '../components/Diagram.astro';
+import { GROUPS, KINDS, type GroupKey } from '../site';
+import { ROLES, EDUCATION } from '../career';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const groups = (Object.keys(GROUPS) as GroupKey[])
+  .map((key) => ({ key, ...GROUPS[key], items: projects.filter((p) => p.data.group === key) }))
+  .filter((g) => g.items.length);
+---
+
+<Base
+  title="Jackson Rhodes: selected work"
+  description="Production AI systems, data pipelines and revenue operations work by Jackson Rhodes, each with how it works and what went wrong."
+>
+  <div class="shell">
+    <header class="rail">
+      <div class="rail-top">
+        <h1>Jackson Rhodes</h1>
+        <p class="thesis">I build the systems revenue teams run on, and the controls that make their AI trustworthy.</p>
+        <p class="about">
+          Actuary by training. Six years in venture diligence and insurance consulting, then first revenue operations
+          hire at a Series C software company, where I built the platform below alone.
+        </p>
+      </div>
+
+      <div class="filters" role="group" aria-label="Filter work by kind">
+        <button type="button" class="chip" data-kind="all" aria-pressed="true">All <span data-count></span></button>
+        {
+          Object.entries(KINDS).map(([key, label]) => (
+            <button type="button" class="chip" data-kind={key} aria-pressed="false">
+              {label}
+            </button>
+          ))
+        }
+      </div>
+
+      <a class="career-link" href="#career">Career and education</a>
+
+      <address>
+        <a href="mailto:jackson.bailey.rhodes@gmail.com">jackson.bailey.rhodes@gmail.com</a>
+        <a href="https://linkedin.com/in/jacksonbrhodes">LinkedIn</a>
+        <a href="https://github.com/br33zybail">GitHub</a>
+        <span>Nashville, Tennessee</span>
+      </address>
+    </header>
+
+    <main class="index">
+      {
+        groups.map((g) => (
+          <section class="group" data-group>
+            <div class="group-head">
+              <h2>{g.name}</h2>
+              <p>{g.blurb}</p>
+            </div>
+            <ul>
+              {g.items.map((p) => (
+                <li data-kinds={p.data.kinds.join(' ')}>
+                  <a href={`/work/${p.id}/`} data-preview={p.id}>
+                    <span class="t">{p.data.title}</span>
+                    <span class="s">{p.data.summary}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+      <p class="empty" hidden>Nothing under that filter.</p>
+
+      <section class="group career" id="career" data-career>
+        <div class="group-head">
+          <h2>Career</h2>
+        </div>
+        <ol>
+          {
+            ROLES.map((r) => (
+              <li>
+                <p class="when">{r.dates}</p>
+                <div>
+                  <h3>{r.title}</h3>
+                  <p class="org">
+                    {r.org}
+                    {r.place && `, ${r.place}`}
+                  </p>
+                  <p class="what">{r.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+        <h3 class="edu-head">Education</h3>
+        <ol>
+          {
+            EDUCATION.map((e) => (
+              <li>
+                <p class="when">{e.dates}</p>
+                <div>
+                  <h3>{e.title}</h3>
+                  <p class="org">{e.org}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+    </main>
+
+    <aside class="pane" aria-label="Preview of the selected entry">
+      {
+        projects.map((p, i) => (
+          <article id={`preview-${p.id}`} hidden={i !== 0}>
+            <p class="pane-group">{GROUPS[p.data.group].name}</p>
+            <h2>{p.data.title}</h2>
+            <p class="pane-summary">{p.data.summary}</p>
+            <Diagram diagram={p.data.diagram} compact />
+            {p.data.facts.length > 0 && (
+              <dl>
+                {p.data.facts.map((f) => (
+                  <div>
+                    <dt>{f.label}</dt>
+                    <dd>{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            <div class="pane-foot">
+              {p.data.kinds.map((k) => (
+                <span class="kind">{KINDS[k]}</span>
+              ))}
+              <a class="open" href={`/work/${p.id}/`}>
+                Read how it works
+              </a>
+            </div>
+          </article>
+        ))
+      }
+    </aside>
+  </div>
+</Base>
+
+<script>
+  const rows = [...document.querySelectorAll<HTMLLIElement>('.index [data-group] li')];
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('.chip')];
+  const previews = [...document.querySelectorAll<HTMLElement>('.pane article')];
+  const empty = document.querySelector<HTMLElement>('.empty')!;
+  const count = document.querySelector<HTMLElement>('[data-count]')!;
+  count.textContent = String(rows.length);
+
+  const show = (id: string) => {
+    for (const p of previews) p.hidden = p.id !== `preview-${id}`;
+    for (const r of rows) r.classList.toggle('on', r.querySelector('a')!.dataset.preview === id);
+  };
+
+  for (const r of rows) {
+    const a = r.querySelector<HTMLAnchorElement>('a')!;
+    a.addEventListener('pointerenter', () => show(a.dataset.preview!));
+    a.addEventListener('focus', () => show(a.dataset.preview!));
+  }
+
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      const kind = chip.dataset.kind!;
+      for (const c of chips) c.setAttribute('aria-pressed', String(c === chip));
+      let first: string | undefined;
+      for (const r of rows) {
+        const on = kind === 'all' || r.dataset.kinds!.split(' ').includes(kind);
+        r.hidden = !on;
+        if (on) first ??= r.querySelector('a')!.dataset.preview;
+      }
+      for (const g of document.querySelectorAll<HTMLElement>('[data-group]')) {
+        g.hidden = !g.querySelector('li:not([hidden])');
+      }
+      empty.hidden = Boolean(first);
+      document.querySelector<HTMLElement>('[data-career]')!.hidden = kind !== 'all';
+      if (first) show(first);
+    });
+  }
+
+  if (rows[0]) rows[0].classList.add('on');
+</script>
+
+<style>
+  .shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 100dvh;
+  }
+
+  /* Rail */
+  .rail {
+    background: var(--cobalt);
+    color: var(--on-cobalt);
+    padding: clamp(1.5rem, 4vw, 2.5rem) var(--gutter);
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .rail h1 {
+    font-size: var(--step-3);
+    font-stretch: 118%;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .thesis {
+    margin-top: 1rem;
+    font-size: var(--step-1);
+    line-height: 1.3;
+    font-weight: 500;
+    max-width: 24ch;
+  }
+  .about {
+    margin-top: 1rem;
+    color: var(--on-cobalt-2);
+    max-width: 44ch;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .chip {
+    padding: 0.4rem 0.8rem;
+    min-height: 2.5rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in oklch, var(--on-cobalt) 40%, transparent);
+    background: transparent;
+    color: var(--on-cobalt);
+    cursor: pointer;
+    transition:
+      background 160ms var(--ease),
+      color 160ms var(--ease);
+  }
+  .chip:hover {
+    background: color-mix(in oklch, var(--on-cobalt) 14%, transparent);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--on-cobalt);
+    border-color: var(--on-cobalt);
+    color: var(--cobalt-deep);
+    font-weight: 600;
+  }
+  .chip:focus-visible,
+  .rail a:focus-visible {
+    outline-color: var(--on-cobalt);
+  }
+  .chip [data-count] {
+    opacity: 0.7;
+    margin-left: 0.15em;
+  }
+  address {
+    font-style: normal;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    font-size: var(--step--1);
+    color: var(--on-cobalt-2);
+  }
+  address a {
+    color: var(--on-cobalt);
+  }
+
+  /* Index */
+  .index {
+    padding: clamp(1.5rem, 4vw, 2.5rem) var(--gutter) 4rem;
+    min-width: 0;
+  }
+  .group + .group {
+    margin-top: 2.75rem;
+  }
+  .group-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .group-head h2 {
+    font-size: var(--step-2);
+  }
+  .group-head p {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+    max-width: 52ch;
+  }
+  .group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .group ul li {
+    border-bottom: 1px solid var(--line);
+  }
+  .group li a {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.8rem 0.6rem 0.85rem 0;
+    color: inherit;
+    text-decoration: none;
+    transition:
+      padding 200ms var(--ease),
+      background 200ms var(--ease);
+  }
+  .group .t {
+    font-weight: 650;
+    font-stretch: 106%;
+    font-size: var(--step-1);
+    line-height: 1.2;
+  }
+  .group .s {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+    max-width: 68ch;
+  }
+  .group li a:hover .t {
+    color: var(--cobalt);
+  }
+  .empty {
+    color: var(--ink-2);
+  }
+
+  .career {
+    margin-top: 4rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .career ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .career li {
+    display: grid;
+    gap: 0.2rem 1.5rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .career .when {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+    padding-top: 0.2rem;
+  }
+  .career h3 {
+    font-size: var(--step-1);
+    font-stretch: 106%;
+    line-height: 1.2;
+  }
+  .career .org {
+    color: var(--ink-2);
+  }
+  .career .what {
+    margin-top: 0.5rem;
+    max-width: 68ch;
+  }
+  .career .edu-head {
+    margin-top: 2.5rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  @media (min-width: 560px) {
+    .career li {
+      grid-template-columns: 9.5rem minmax(0, 1fr);
+    }
+  }
+  .career-link {
+    color: var(--on-cobalt);
+    font-weight: 600;
+    align-self: flex-start;
+  }
+
+  /* Preview pane: wide screens only */
+  .pane {
+    display: none;
+  }
+
+  @media (min-width: 860px) {
+    .shell {
+      grid-template-columns: minmax(17rem, 22rem) minmax(0, 1fr);
+    }
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      overflow-y: auto;
+      justify-content: space-between;
+    }
+    address {
+      flex-direction: column;
+    }
+  }
+
+  @media (min-width: 1240px) {
+    .shell {
+      grid-template-columns: minmax(18rem, 23rem) minmax(0, 1fr) minmax(22rem, 30rem);
+    }
+    .pane {
+      display: block;
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      overflow-y: auto;
+      padding: clamp(1.5rem, 4vw, 2.5rem) var(--gutter);
+      background: var(--wash);
+    }
+    .group li.on a {
+      background: var(--wash);
+      padding-left: 0.75rem;
+    }
+    .group li.on .t {
+      color: var(--cobalt);
+    }
+    .pane article {
+      display: grid;
+      gap: 1.1rem;
+      animation: settle 260ms var(--ease);
+    }
+    .pane article[hidden] {
+      display: none;
+    }
+    .pane-group {
+      color: var(--cobalt);
+      font-weight: 600;
+      font-size: var(--step--1);
+    }
+    .pane h2 {
+      font-size: var(--step-2);
+    }
+    .pane-summary {
+      font-size: var(--step-1);
+      line-height: 1.35;
+    }
+    .pane dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .pane dt {
+      color: var(--ink-2);
+      font-size: var(--step--1);
+    }
+    .pane dd {
+      margin: 0;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .pane-foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .open {
+      margin-left: auto;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      background: var(--cobalt);
+      color: var(--on-cobalt);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .open:hover {
+      background: var(--cobalt-deep);
+    }
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0.4;
+      transform: translateY(6px);
+    }
+  }
+</style>

@@ -1,0 +1,295 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Diagram from '../../components/Diagram.astro';
+import ForecastSim from '../../components/ForecastSim.astro';
+import NashvilleMap from '../../components/NashvilleMap.astro';
+import { GROUPS, KINDS } from '../../site';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, prev: projects[i - 1], next: projects[i + 1] },
+  }));
+}
+
+const { project, prev, next } = Astro.props;
+const { data } = project;
+const { Content } = await render(project);
+
+const shotFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/shots/*.png', { eager: true });
+const shots = data.shots.map((name) => shotFiles[`../../assets/shots/${name}`]?.default).filter(Boolean);
+---
+
+<Base title={`${data.title} | Jackson Rhodes`} description={data.summary}>
+  <header class="top">
+    <a class="home" href="/">Jackson Rhodes</a>
+    <a href="/">All work</a>
+  </header>
+
+  <main>
+    <div class="head">
+      <p class="group">{GROUPS[data.group].name}</p>
+      <h1>{data.title}</h1>
+      <p class="summary">{data.summary}</p>
+      <div class="kinds">
+        {data.kinds.map((k) => <span class="kind">{KINDS[k]}</span>)}
+      </div>
+    </div>
+
+    <div class="wide">
+      <Diagram diagram={data.diagram} />
+    </div>
+
+    {
+      data.demo && (
+        <div class="wide">
+          {data.demo === 'forecast' ? <ForecastSim /> : <NashvilleMap />}
+        </div>
+      )
+    }
+
+    {
+      shots.length > 0 && (
+        <div class="wide shots">
+          {shots.map((src) => (
+            <Image src={src} alt={`Screenshot of the live FastScribe site`} widths={[640, 1100]} sizes="(min-width: 900px) 46vw, 92vw" />
+          ))}
+        </div>
+      )
+    }
+
+    <div class="cols">
+      <article class="prose">
+        <Content />
+      </article>
+
+      <aside>
+        {
+          data.facts.length > 0 && (
+            <dl>
+              {data.facts.map((f) => (
+                <div>
+                  <dt>{f.label}</dt>
+                  <dd>{f.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )
+        }
+        {
+          data.links.length > 0 && (
+            <ul class="links">
+              {data.links.map((l) => (
+                <li>
+                  <a href={l.href}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </aside>
+    </div>
+
+    <nav class="wide pager" aria-label="More work">
+      {prev ? (
+        <a href={`/work/${prev.id}/`}>
+          <span>Previous</span>
+          {prev.data.title}
+        </a>
+      ) : (
+        <span />
+      )}
+      {
+        next && (
+          <a class="next" href={`/work/${next.id}/`}>
+            <span>Next</span>
+            {next.data.title}
+          </a>
+        )
+      }
+    </nav>
+  </main>
+</Base>
+
+<style>
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem var(--gutter);
+    border-bottom: 1px solid var(--line);
+  }
+  .top a {
+    color: var(--ink);
+    text-decoration: none;
+    padding: 0.4rem 0;
+  }
+  .top a:hover {
+    color: var(--cobalt);
+  }
+  .home {
+    font-weight: 700;
+    font-stretch: 115%;
+    letter-spacing: -0.01em;
+  }
+
+  main {
+    padding: 0 var(--gutter) 5rem;
+    max-width: 78rem;
+    margin: 0 auto;
+  }
+  .head {
+    padding: clamp(2rem, 6vw, 4.5rem) 0 clamp(1.5rem, 4vw, 2.5rem);
+    max-width: 52rem;
+  }
+  .group {
+    color: var(--cobalt);
+    font-weight: 600;
+  }
+  h1 {
+    margin-top: 0.5rem;
+    font-size: var(--step-3);
+    font-stretch: 116%;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .summary {
+    margin-top: 1.1rem;
+    font-size: var(--step-1);
+    line-height: 1.35;
+    max-width: 44ch;
+  }
+  .kinds {
+    margin-top: 1.1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .wide + .cols,
+  .cols + .wide,
+  .wide + .wide {
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .cols {
+    display: grid;
+    gap: 2.5rem clamp(2rem, 6vw, 5rem);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 900px) {
+    .cols {
+      grid-template-columns: minmax(0, 40rem) minmax(14rem, 1fr);
+    }
+    aside {
+      position: sticky;
+      top: 1.5rem;
+      align-self: start;
+    }
+  }
+
+  .prose :global(h2) {
+    font-size: var(--step-1);
+    font-stretch: 108%;
+    margin: 2.2rem 0 0.6rem;
+  }
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .prose :global(p),
+  .prose :global(ul) {
+    max-width: 68ch;
+  }
+  .prose :global(ul + p),
+  .prose :global(p + p) {
+    margin-top: 0.85rem;
+  }
+  .prose :global(ul) {
+    margin: 0.85rem 0 0;
+    padding-left: 1.15rem;
+  }
+  .prose :global(li + li) {
+    margin-top: 0.35rem;
+  }
+  .prose :global(code) {
+    font-size: 0.92em;
+    padding: 0.08em 0.3em;
+    background: var(--wash);
+    border-radius: 4px;
+  }
+
+  aside dl {
+    margin: 0;
+    display: grid;
+    gap: 1.1rem;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    padding-top: 1.1rem;
+    border-top: 2px solid var(--ink);
+  }
+  aside dt {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+  }
+  aside dd {
+    margin: 0.1rem 0 0;
+    font-weight: 650;
+    font-size: var(--step-1);
+    line-height: 1.25;
+  }
+  .links {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .links a {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .shots {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  }
+  .shots :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .pager a {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.5rem 0;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 650;
+    font-stretch: 106%;
+    line-height: 1.25;
+  }
+  .pager a:hover {
+    color: var(--cobalt);
+  }
+  .pager a span {
+    color: var(--ink-2);
+    font-weight: 400;
+    font-size: var(--step--1);
+  }
+  .pager .next {
+    text-align: right;
+  }
+</style>

@@ -1,0 +1,323 @@
+---
+// One drawing per project: a stepped flow, an ordered ladder, or measured bars.
+// `compact` renders the still version used in the home page preview.
+interface Step {
+  label: string;
+  note: string;
+}
+interface Bar {
+  label: string;
+  value: number;
+}
+interface Props {
+  diagram: {
+    type: 'flow' | 'ladder' | 'bars';
+    caption: string;
+    steps?: Step[];
+    unit?: string;
+    bars?: Bar[];
+  };
+  compact?: boolean;
+}
+
+const { diagram, compact = false } = Astro.props;
+const steps = diagram.steps ?? [];
+const bars = diagram.bars ?? [];
+const max = Math.max(...bars.map((b) => b.value), 1);
+---
+
+{
+  diagram.type === 'bars' ? (
+    <figure class:list={['bars', { compact }]}>
+      <ul>
+        {bars.map((b) => (
+          <li>
+            <span class="bar-label">{b.label}</span>
+            <span class="bar-track">
+              <span class="bar-fill" style={`--w:${(b.value / max) * 100}%`} />
+            </span>
+            <span class="bar-value">
+              {b.value}
+              {diagram.unit && <small> {diagram.unit}</small>}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {!compact && <figcaption>{diagram.caption}</figcaption>}
+    </figure>
+  ) : compact ? (
+    <ol class:list={['mini', diagram.type]}>
+      {steps.map((s) => (
+        <li>{s.label}</li>
+      ))}
+    </ol>
+  ) : (
+    <figure class:list={['stepper', diagram.type]} data-stepper>
+      <figcaption>{diagram.caption}</figcaption>
+      <ol role="tablist" aria-label={diagram.caption}>
+        {steps.map((s, i) => (
+          <li>
+            <button
+              type="button"
+              role="tab"
+              id={`step-tab-${i}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              aria-controls="step-panel"
+              tabindex={i === 0 ? 0 : -1}
+              data-note={s.note}
+            >
+              <span class="n">{i + 1}</span>
+              <span class="l">{s.label}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p class="note" id="step-panel" role="tabpanel" aria-live="polite">
+        {steps[0]?.note}
+      </p>
+      <noscript>
+        <ol class="all-notes">
+          {steps.map((s) => (
+            <li>
+              <strong>{s.label}.</strong> {s.note}
+            </li>
+          ))}
+        </ol>
+      </noscript>
+    </figure>
+  )
+}
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-stepper]')) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panel = root.querySelector<HTMLElement>('[role="tabpanel"]')!;
+    const select = (i: number, focus = false) => {
+      tabs.forEach((t, j) => {
+        t.setAttribute('aria-selected', String(i === j));
+        t.tabIndex = i === j ? 0 : -1;
+      });
+      panel.textContent = tabs[i].dataset.note ?? '';
+      panel.setAttribute('aria-labelledby', tabs[i].id);
+      if (focus) tabs[i].focus();
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(i));
+      t.addEventListener('keydown', (e) => {
+        const next = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+        if (next === undefined) return;
+        e.preventDefault();
+        select((next + tabs.length) % tabs.length, true);
+      });
+    });
+  }
+</script>
+
+<style>
+  figure {
+    margin: 0;
+  }
+  figcaption {
+    color: var(--ink-2);
+    font-size: var(--step--1);
+  }
+
+  /* Stepper */
+  .stepper {
+    background: var(--cobalt);
+    color: var(--on-cobalt);
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    border-radius: 14px;
+  }
+  .stepper figcaption {
+    color: var(--on-cobalt-2);
+    margin-bottom: 1.1rem;
+  }
+  .stepper ol[role='tablist'] {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .stepper.flow ol[role='tablist'] {
+    flex-wrap: wrap;
+  }
+  .stepper.flow li {
+    flex: 1 1 9.5rem;
+    display: flex;
+  }
+  .stepper.ladder ol[role='tablist'] {
+    flex-direction: column;
+  }
+  @media (min-width: 760px) {
+    .stepper.ladder {
+      display: grid;
+      grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+      gap: 0 2.5rem;
+      align-items: center;
+    }
+    .stepper.ladder figcaption {
+      grid-column: 1 / -1;
+    }
+    .stepper.ladder .note {
+      margin-top: 0;
+      font-size: var(--step-2);
+      line-height: 1.25;
+    }
+  }
+  .stepper button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    line-height: 1.2;
+    background: color-mix(in oklch, var(--on-cobalt) 9%, transparent);
+    border: 1px solid color-mix(in oklch, var(--on-cobalt) 28%, transparent);
+    border-radius: 9px;
+    color: var(--on-cobalt);
+    cursor: pointer;
+    transition:
+      background 180ms var(--ease),
+      color 180ms var(--ease),
+      transform 180ms var(--ease);
+  }
+  .stepper button:hover {
+    background: color-mix(in oklch, var(--on-cobalt) 18%, transparent);
+  }
+  .stepper button[aria-selected='true'] {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: oklch(0.2 0.04 70);
+    transform: translateY(-2px);
+  }
+  .stepper button:focus-visible {
+    outline-color: var(--on-cobalt);
+  }
+  .stepper .n {
+    font-weight: 700;
+    opacity: 0.75;
+  }
+  .stepper .l {
+    font-weight: 600;
+    font-stretch: 105%;
+  }
+  .stepper .note {
+    margin-top: 1.1rem;
+    min-height: 2.9em;
+    max-width: 62ch;
+    font-size: var(--step-1);
+    line-height: 1.4;
+  }
+  .all-notes {
+    margin: 1rem 0 0;
+    padding-left: 1.2rem;
+  }
+
+  /* Compact preview */
+  .mini {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0;
+    font-size: var(--step--1);
+    font-weight: 550;
+  }
+  .mini li {
+    display: flex;
+    align-items: center;
+    padding: 0.35rem 0.65rem;
+    background: var(--cobalt-tint);
+    color: var(--cobalt-deep);
+    border-radius: 7px;
+  }
+  .mini.flow li:not(:last-child)::after,
+  .mini.ladder li:not(:last-child)::after {
+    content: '';
+    width: 0.9rem;
+    height: 1px;
+    margin-right: -1.55rem;
+    margin-left: 0.65rem;
+    background: var(--cobalt);
+  }
+  .mini li:not(:last-child) {
+    margin-right: 0.9rem;
+  }
+
+  /* Bars */
+  .bars ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .bars li {
+    display: grid;
+    grid-template-columns: minmax(7rem, 14rem) 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--step--1);
+  }
+  .bars:not(.compact) {
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    background: var(--wash);
+    border-radius: 14px;
+  }
+  .bars:not(.compact) li {
+    font-size: var(--step-0);
+  }
+  .bar-track {
+    height: 0.9rem;
+    background: var(--cobalt-tint);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    display: block;
+    height: 100%;
+    width: var(--w);
+    background: var(--cobalt);
+    border-radius: 3px;
+    transform-origin: left;
+    animation: grow 700ms var(--ease) both;
+  }
+  .bar-value {
+    font-weight: 650;
+  }
+  .bar-value small {
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+  .bars figcaption {
+    margin-top: 1rem;
+  }
+  .compact .bar-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .compact li {
+    grid-template-columns: minmax(5rem, 9rem) 1fr auto;
+  }
+  @keyframes grow {
+    from {
+      transform: scaleX(0.02);
+    }
+  }
+  @media (max-width: 520px) {
+    .bars li {
+      grid-template-columns: 1fr auto;
+    }
+    .bar-track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+</style>

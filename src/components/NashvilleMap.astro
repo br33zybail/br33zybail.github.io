@@ -1,0 +1,141 @@
+---
+// A sample of resolved public records, drawn as points. No basemap: the city's shape comes from the records.
+const KINDS = [
+  { key: 'permit', label: 'Building permits' },
+  { key: 'council', label: 'Council items' },
+  { key: 'planning', label: 'Planning items' },
+];
+---
+
+<section class="map" data-map aria-labelledby="map-title">
+  <div class="map-head">
+    <h2 id="map-title">Nashville, drawn from its own records</h2>
+    <p>
+      Each point is one public record that the pipeline tied to a parcel with at least 90% confidence. This is a sample
+      of 3,000, weighted so all three sources show, so density here is not a measure of activity.
+    </p>
+    <div class="toggles" role="group" aria-label="Show record kinds">
+      {
+        KINDS.map((k) => (
+          <button type="button" data-kind={k.key} aria-pressed="true">
+            <span class={`dot ${k.key}`} />
+            {k.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  <canvas width="1200" height="1000" role="img" aria-label="Scatter of 3,000 resolved records across Davidson County"
+  ></canvas>
+</section>
+
+<script>
+  const COLORS: Record<string, string> = {
+    permit: 'oklch(0.47 0.19 258)',
+    council: 'oklch(0.72 0.17 70)',
+    planning: 'oklch(0.55 0.2 20)',
+  };
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-map]')) {
+    const canvas = root.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('button')];
+
+    fetch('/data/nearbywatch-points.json')
+      .then((r) => r.json())
+      .then(({ bbox, points }: { bbox: number[]; points: [number, number, string][] }) => {
+        const [w, s, e, n] = bbox;
+        // Shrink longitude by cos(latitude) so the county keeps its shape.
+        const k = Math.cos((((s + n) / 2) * Math.PI) / 180);
+        const spanX = (e - w) * k, spanY = n - s;
+        const pad = 24;
+        const scale = Math.min((canvas.width - 2 * pad) / spanX, (canvas.height - 2 * pad) / spanY);
+        const ox = (canvas.width - spanX * scale) / 2, oy = (canvas.height - spanY * scale) / 2;
+
+        const draw = () => {
+          const on = new Set(buttons.filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.dataset.kind));
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.globalAlpha = 0.72;
+          for (const [lon, lat, kind] of points) {
+            if (!on.has(kind)) continue;
+            ctx.fillStyle = COLORS[kind];
+            ctx.beginPath();
+            ctx.arc(ox + (lon - w) * k * scale, oy + (n - lat) * scale, kind === 'permit' ? 3.2 : 4.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        };
+
+        for (const b of buttons) {
+          b.addEventListener('click', () => {
+            b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+            draw();
+          });
+        }
+        draw();
+      });
+  }
+</script>
+
+<style>
+  .map {
+    display: grid;
+    gap: 1.5rem 2.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    align-items: center;
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    background: var(--wash);
+    border-radius: 14px;
+  }
+  h2 {
+    font-size: var(--step-2);
+  }
+  p {
+    margin-top: 0.6rem;
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+  .toggles {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    cursor: pointer;
+  }
+  button[aria-pressed='false'] {
+    color: var(--ink-2);
+    background: transparent;
+  }
+  button[aria-pressed='false'] .dot {
+    opacity: 0.25;
+  }
+  .dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+  }
+  .dot.permit {
+    background: oklch(0.47 0.19 258);
+  }
+  .dot.council {
+    background: oklch(0.72 0.17 70);
+  }
+  .dot.planning {
+    background: oklch(0.55 0.2 20);
+  }
+  canvas {
+    width: 100%;
+    height: auto;
+    background: var(--bg);
+    border-radius: 10px;
+  }
+</style>
