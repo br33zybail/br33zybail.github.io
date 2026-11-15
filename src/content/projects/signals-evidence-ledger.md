@@ -17,6 +17,8 @@ diagram:
     - { label: "Score at read time", note: "Noisy-OR combines the evidence, capped at 0.97, cut to 0.25 by a live contradiction, halved after 12 months." }
     - { label: "Fit times trigger", note: "Separately, for companies not yet in the CRM, hard-gated fit is multiplied by a decaying trigger score to give priority." }
     - { label: "Rank the cards", note: "Cards show a rule-written why-now line and sort by rank or by newest." }
+shots: [study-signals.png]
+shotsNote: "A design study from my model panel, with a made-up brand and fictional data. It is not the production screen."
 ---
 
 ## The problem

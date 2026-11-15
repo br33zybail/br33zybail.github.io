@@ -17,6 +17,8 @@ diagram:
     - { label: "What changed", note: "Warm signals, pipeline moves in the last 48 hours, and replies that came in overnight." }
     - { label: "Edit in place", note: "A rep can change a forecast field inline, and the platform writes it back to Salesforce." }
 screen: myday
+shots: [study-home.png]
+shotsNote: "A design study from my model panel, with a made-up brand and fictional data. It is not the production screen."
 ---
 
 ## The problem

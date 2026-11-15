@@ -22,7 +22,7 @@ const { project, prev, next } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 
-const shotFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/shots/*.png', { eager: true });
+const shotFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/shots/*.{png,jpg}', { eager: true });
 const shots = data.shots
   .map((name) => ({ src: shotFiles[`../../assets/shots/${name}`]?.default, alt: SHOT_ALT[name] ?? '' }))
   .filter((s) => s.src);

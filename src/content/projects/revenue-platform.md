@@ -18,6 +18,8 @@ diagram:
     - { label: "Postgres with RLS", note: "One door sets four session settings per request. Row-level security policies read them and scope the rows." }
     - { label: "Next.js app", note: "The app reads Postgres at request time as a role that is not a superuser, so the policies always apply." }
     - { label: "Agents and MCP", note: "A Postgres job queue runs scheduled agents. Colleagues' own AI assistants read through an MCP connector under the same rules." }
+shots: [study-queue.png, study-account-dashboard.png]
+shotsNote: "Design studies from my model panel, with a made-up brand and fictional data. They are not production screens."
 ---
 
 ## The problem

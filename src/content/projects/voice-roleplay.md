@@ -18,6 +18,8 @@ diagram:
     - { label: "Talk to the prospect", note: "The rep speaks; the AI prospect answers in a stock voice chosen from a server-side allow-list." }
     - { label: "Grade by forced tool", note: "The grader must return five scores through a tool call, one per rubric dimension." }
 screen: roleplay
+shots: [study-practice.png]
+shotsNote: "A design study from my model panel, with a made-up brand and fictional data. It is not the production screen."
 ---
 
 ## The problem

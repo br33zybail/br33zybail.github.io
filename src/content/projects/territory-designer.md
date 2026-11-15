@@ -20,6 +20,8 @@ diagram:
     - { label: "Name the shapes", note: "Reps are matched to regions by an exact minimum-cost assignment on distance from home." }
     - { label: "Fix stray lobes", note: "A flagged optimizer makes reciprocal swaps so every region stays one connected patch." }
 screen: territory
+shots: [study-territory.png]
+shotsNote: "A design study from my model panel, with a made-up brand and fictional data. It is not the production screen."
 ---
 
 ## The problem
