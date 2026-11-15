@@ -6,7 +6,9 @@ import Base from '../../layouts/Base.astro';
 import Diagram from '../../components/Diagram.astro';
 import ForecastSim from '../../components/ForecastSim.astro';
 import NashvilleMap from '../../components/NashvilleMap.astro';
-import { GROUPS, KINDS } from '../../site';
+import Screen from '../../components/Screen.astro';
+import Timeline from '../../components/Timeline.astro';
+import { GROUPS, KINDS, SHOT_ALT } from '../../site';
 
 export async function getStaticPaths() {
   const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
@@ -21,7 +23,9 @@ const { data } = project;
 const { Content } = await render(project);
 
 const shotFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/shots/*.png', { eager: true });
-const shots = data.shots.map((name) => shotFiles[`../../assets/shots/${name}`]?.default).filter(Boolean);
+const shots = data.shots
+  .map((name) => ({ src: shotFiles[`../../assets/shots/${name}`]?.default, alt: SHOT_ALT[name] ?? '' }))
+  .filter((s) => s.src);
 ---
 
 <Base title={`${data.title} | Jackson Rhodes`} description={data.summary}>
@@ -53,11 +57,28 @@ const shots = data.shots.map((name) => shotFiles[`../../assets/shots/${name}`]?.
     }
 
     {
+      data.screen && (
+        <div class="wide">
+          <Screen screen={data.screen} />
+        </div>
+      )
+    }
+
+    {
+      data.timeline && (
+        <div class="wide">
+          <Timeline events={data.timeline} />
+        </div>
+      )
+    }
+
+    {
       shots.length > 0 && (
         <div class="wide shots">
-          {shots.map((src) => (
-            <Image src={src} alt={`Screenshot of the live FastScribe site`} widths={[640, 1100]} sizes="(min-width: 900px) 46vw, 92vw" />
+          {shots.map((s) => (
+            <Image src={s.src} alt={s.alt} widths={[640, 1100]} sizes="(min-width: 900px) 46vw, 92vw" />
           ))}
+          {data.shotsNote && <p class="shots-note">{data.shotsNote}</p>}
         </div>
       )
     }
@@ -256,6 +277,11 @@ const shots = data.shots.map((name) => shotFiles[`../../assets/shots/${name}`]?.
     display: grid;
     gap: 1rem;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  }
+  .shots-note {
+    grid-column: 1 / -1;
+    font-size: var(--step--1);
+    color: var(--ink-2);
   }
   .shots :global(img) {
     width: 100%;

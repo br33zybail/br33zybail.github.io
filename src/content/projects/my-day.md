@@ -16,6 +16,7 @@ diagram:
     - { label: "One queue", note: "Meetings, overdue follow-ups, suggested outreach, tasks and forecast hygiene, merged and ordered by rules." }
     - { label: "What changed", note: "Warm signals, pipeline moves in the last 48 hours, and replies that came in overnight." }
     - { label: "Edit in place", note: "A rep can change a forecast field inline, and the platform writes it back to Salesforce." }
+screen: myday
 ---
 
 ## The problem

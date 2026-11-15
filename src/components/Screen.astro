@@ -1,0 +1,445 @@
+---
+// Redrawn illustrations of four platform screens. Every name, number and sentence here is invented.
+interface Props {
+  screen: 'myday' | 'brief' | 'territory' | 'roleplay';
+}
+const { screen } = Astro.props;
+
+const TITLES = {
+  myday: 'The morning home page',
+  brief: 'An account brief, after the judge',
+  territory: 'The territory sandbox',
+  roleplay: 'A role-play scorecard',
+};
+
+// Territory illustration: a seeded field of account dots, each assigned to the nearest of eight region seeds.
+const rand = (() => {
+  let s = 7;
+  return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646;
+})();
+const seeds = Array.from({ length: 8 }, (_, i) => ({
+  x: 70 + (i % 4) * 150 + rand() * 60,
+  y: 70 + Math.floor(i / 4) * 150 + rand() * 60,
+}));
+const dots = Array.from({ length: 640 }, () => {
+  const c = seeds[Math.floor(rand() * seeds.length)];
+  const x = c.x + (rand() + rand() + rand() - 1.5) * 190;
+  const y = c.y + (rand() + rand() + rand() - 1.5) * 150;
+  let best = 0;
+  seeds.forEach((s, i) => {
+    if ((s.x - x) ** 2 + (s.y - y) ** 2 < (seeds[best].x - x) ** 2 + (seeds[best].y - y) ** 2) best = i;
+  });
+  return { x, y, r: 1.6 + rand() * 2.6, region: best };
+}).filter((d) => d.x > 12 && d.x < 628 && d.y > 12 && d.y < 328);
+const counts = seeds.map((_, i) => dots.filter((d) => d.region === i).length);
+const maxCount = Math.max(...counts);
+
+const RUBRIC = [
+  { name: 'Acknowledge', score: 4 },
+  { name: 'Reframe', score: 3 },
+  { name: 'Evidence', score: 5 },
+  { name: 'Stay on frame', score: 4 },
+  { name: 'Close the loop', score: 2 },
+];
+---
+
+<figure class="screen">
+  <div class="frame" role="img" aria-label={`Illustration of ${TITLES[screen].toLowerCase()}, drawn with invented data`}>
+    {
+      screen === 'myday' && (
+        <div class="myday" aria-hidden="true">
+          <div class="greet">
+            <strong>Good morning, Dana.</strong> Two replies came in overnight, and <u>Northwind Supply</u> moved to
+            proposal on Friday. Your 10:30 with <u>Harbor & Vine</u> has no agenda yet.
+          </div>
+          <div class="cols">
+            <div>
+              <h4>Today's queue</h4>
+              <ul class="queue">
+                <li><span class="tag meet">Meeting</span> Harbor & Vine, discovery <em>10:30</em></li>
+                <li><span class="tag due">Overdue</span> Follow up with Juniper Goods <em>3 days</em></li>
+                <li><span class="tag out">Outreach</span> Calder Systems: new operations lead <em>draft ready</em></li>
+                <li><span class="tag out">Outreach</span> Pine Street Co.: visited pricing twice <em>draft ready</em></li>
+                <li><span class="tag task">Task</span> Send security answers to Northwind <em>today</em></li>
+                <li><span class="tag fc">Forecast</span> Alder Group close date is in the past <em>fix</em></li>
+              </ul>
+            </div>
+            <div>
+              <h4>What changed</h4>
+              <ul class="changed">
+                <li><b>Replies</b> 2 overnight</li>
+                <li><b>Pipeline</b> 3 deals moved in 48 hours</li>
+                <li><b>Signals</b> 4 warm accounts</li>
+              </ul>
+              <h4>Time saved this month</h4>
+              <p class="big">6.5 <small>hours, estimated</small></p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    {
+      screen === 'brief' && (
+        <div class="brief" aria-hidden="true">
+          <h4>Northwind Supply <small>brief, refreshed overnight</small></h4>
+          <p>
+            Their operations lead said the current tool "cannot plan past two weeks" <sup>C2</sup>. The pilot scope
+            agreed on the last call covers one region <sup>C3</sup>.
+            <s>They plan to expand to four regions by spring.</s> <span class="struck">struck: no source says this</span>
+          </p>
+          <p>
+            Pricing went out on the 4th and was opened three times <sup>E1</sup>. Legal asked for the security
+            questionnaire <sup>E2</sup>. <s>The buyer has budget approved.</s>
+            <span class="struck">struck: the email says "pending"</span>
+          </p>
+          <ul class="sources">
+            <li><sup>C2</sup> Call, 28 Oct, 14:02</li>
+            <li><sup>C3</sup> Call, 6 Nov, 31:40</li>
+            <li><sup>E1</sup> Email, 4 Nov</li>
+            <li><sup>E2</sup> Email, 7 Nov</li>
+          </ul>
+        </div>
+      )
+    }
+    {
+      screen === 'territory' && (
+        <div class="territory" aria-hidden="true">
+          <svg viewBox="0 0 640 340">
+            {dots.map((d) => (
+              <circle cx={d.x} cy={d.y} r={d.r} class={`r${d.region}`} />
+            ))}
+          </svg>
+          <ul class="balance">
+            {counts.map((c, i) => (
+              <li>
+                <span class={`sw r${i}`} />
+                Region {i + 1}
+                <span class="meter">
+                  <span style={`width:${(c / maxCount) * 100}%`} class={`r${i}`} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+    {
+      screen === 'roleplay' && (
+        <div class="roleplay" aria-hidden="true">
+          <div class="chat">
+            <p class="them">We looked at something like this last year and it went nowhere. Why would now differ?</p>
+            <p class="me">
+              That is fair. What stalled it last year? If it was the rollout, I can show how two teams your size went
+              live in a month.
+            </p>
+            <p class="them">Mostly rollout. Send me those two.</p>
+          </div>
+          <div class="score">
+            <p class="total">18 <small>of 25</small></p>
+            <ul>
+              {RUBRIC.map((r) => (
+                <li>
+                  {r.name}
+                  <span class="pips">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <i class:list={{ on: n <= r.score }} />
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p class="improve">To improve: you never asked for a next step.</p>
+          </div>
+        </div>
+      )
+    }
+  </div>
+  <figcaption><strong>{TITLES[screen]}.</strong> An illustration I redrew for this page. All names and numbers are invented.</figcaption>
+</figure>
+
+<style>
+  .screen {
+    margin: 0;
+  }
+  .frame {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: clamp(1rem, 2.5vw, 1.75rem);
+    background: var(--bg);
+    box-shadow: 0 18px 40px -28px oklch(0.3 0.1 258 / 0.45);
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+  figcaption {
+    margin-top: 0.7rem;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+  figcaption strong {
+    color: var(--ink);
+  }
+  h4 {
+    margin: 0 0 0.6rem;
+    font-size: var(--step--1);
+    font-weight: 650;
+    color: var(--ink-2);
+  }
+  h4 small {
+    font-weight: 400;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* My Day */
+  .greet {
+    padding: 0.9rem 1rem;
+    background: var(--cobalt-tint);
+    border-radius: 10px;
+    color: var(--cobalt-deep);
+  }
+  .cols {
+    margin-top: 1.1rem;
+    display: grid;
+    gap: 1.25rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .cols > div:first-child {
+    grid-column: span 2;
+  }
+  @media (max-width: 640px) {
+    .cols > div:first-child {
+      grid-column: auto;
+    }
+  }
+  .queue li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.6rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .queue em {
+    margin-left: auto;
+    font-style: normal;
+    color: var(--ink-2);
+    font-size: var(--step--1);
+  }
+  .tag {
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--wash);
+    color: var(--ink-2);
+  }
+  .tag.meet {
+    background: var(--cobalt);
+    color: var(--on-cobalt);
+  }
+  .tag.due {
+    background: var(--signal);
+    color: oklch(0.25 0.05 70);
+  }
+  .tag.out {
+    background: var(--cobalt-tint);
+    color: var(--cobalt-deep);
+  }
+  .changed li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .changed b {
+    font-weight: 550;
+  }
+  .changed + h4 {
+    margin-top: 1.2rem;
+  }
+  .big {
+    font-size: var(--step-2);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .big small {
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+
+  /* Brief */
+  .brief h4 {
+    font-size: var(--step-1);
+    color: var(--ink);
+  }
+  .brief h4 small {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+  .brief p {
+    max-width: 64ch;
+    font-size: 1.02rem;
+    line-height: 1.6;
+  }
+  .brief p + p {
+    margin-top: 0.8rem;
+  }
+  .brief sup {
+    padding: 0 0.3em;
+    margin-left: 0.15em;
+    border-radius: 4px;
+    background: var(--cobalt-tint);
+    color: var(--cobalt-deep);
+    font-size: 0.7em;
+    font-weight: 700;
+  }
+  .brief s {
+    color: var(--ink-2);
+    text-decoration-color: oklch(0.55 0.2 25);
+    text-decoration-thickness: 2px;
+  }
+  .struck {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: oklch(0.95 0.03 25);
+    color: oklch(0.42 0.16 25);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .sources {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  /* Territory */
+  .territory {
+    display: grid;
+    gap: 1rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    align-items: center;
+  }
+  .territory svg {
+    width: 100%;
+    height: auto;
+    grid-column: span 2;
+  }
+  @media (max-width: 720px) {
+    .territory svg {
+      grid-column: auto;
+    }
+  }
+  .balance li {
+    display: grid;
+    grid-template-columns: 0.8rem 5rem 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.25rem 0;
+    font-size: var(--step--1);
+  }
+  .sw {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+  }
+  .meter {
+    height: 0.5rem;
+    background: var(--wash);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .meter span {
+    display: block;
+    height: 100%;
+  }
+  .r0 { fill: oklch(0.47 0.19 258); background: oklch(0.47 0.19 258); }
+  .r1 { fill: oklch(0.75 0.16 78); background: oklch(0.75 0.16 78); }
+  .r2 { fill: oklch(0.58 0.19 25); background: oklch(0.58 0.19 25); }
+  .r3 { fill: oklch(0.6 0.13 165); background: oklch(0.6 0.13 165); }
+  .r4 { fill: oklch(0.55 0.18 310); background: oklch(0.55 0.18 310); }
+  .r5 { fill: oklch(0.68 0.13 215); background: oklch(0.68 0.13 215); }
+  .r6 { fill: oklch(0.45 0.08 110); background: oklch(0.45 0.08 110); }
+  .r7 { fill: oklch(0.65 0.17 45); background: oklch(0.65 0.17 45); }
+  circle {
+    opacity: 0.8;
+  }
+
+  /* Role-play */
+  .roleplay {
+    display: grid;
+    gap: 1.25rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    align-items: start;
+  }
+  .chat {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .chat p {
+    max-width: 34ch;
+    padding: 0.6rem 0.85rem;
+    border-radius: 12px;
+  }
+  .them {
+    background: var(--wash);
+    border-bottom-left-radius: 3px;
+  }
+  .me {
+    justify-self: end;
+    background: var(--cobalt);
+    color: var(--on-cobalt);
+    border-bottom-right-radius: 3px;
+  }
+  .total {
+    font-size: var(--step-3);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .total small {
+    font-size: var(--step-0);
+    font-weight: 400;
+    color: var(--ink-2);
+  }
+  .score ul {
+    margin-top: 0.9rem;
+  }
+  .score li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .pips {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .pips i {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background: var(--wash);
+    border: 1px solid var(--line);
+  }
+  .pips i.on {
+    background: var(--cobalt);
+    border-color: var(--cobalt);
+  }
+  .improve {
+    margin-top: 0.9rem;
+    color: var(--signal-ink);
+    font-weight: 550;
+  }
+</style>

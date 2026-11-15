@@ -19,6 +19,8 @@ diagram:
     - { label: "Golden-set gate", note: "Any change to prompts, extraction or taxonomy must pass a 95-item golden set before it runs." }
     - { label: "Score and resolve", note: "Each item gets an impact score from 1 to 5, then the resolver ties it to a county parcel or, failing that, an area." }
 demo: map
+shots: [nearbywatch-mock-landing.png, nearbywatch-mock-report.png]
+shotsNote: "Design mock-ups for the web app, which is not built yet."
 ---
 
 ## The problem

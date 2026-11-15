@@ -22,7 +22,10 @@ const projects = defineCollection({
     }),
     links: z.array(z.object({ label: z.string(), href: z.string().url() })).default([]),
     shots: z.array(z.string()).default([]),
+    shotsNote: z.string().optional(),
     demo: z.enum(['forecast', 'map']).optional(),
+    screen: z.enum(['myday', 'brief', 'territory', 'roleplay']).optional(),
+    timeline: z.array(z.object({ date: z.string(), label: z.string(), note: z.string() })).optional(),
   }),
 });
 

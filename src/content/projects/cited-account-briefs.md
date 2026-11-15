@@ -18,6 +18,7 @@ diagram:
     - { label: "Code checks", note: "Code checks run before any model judges: each sentence needs a citation, and each citation must be a token it was given." }
     - { label: "Judge strikes", note: "A Sonnet judge reads each sentence against its sources and strikes unsupported ones. It never rewrites." }
     - { label: "Batch and cap", note: "The nightly run uses the half-price batch API under a per-night and per-month spend cap." }
+screen: brief
 ---
 
 ## The problem

@@ -21,6 +21,12 @@ diagram:
 links:
   - { label: "Merged: pull request #60", href: "https://github.com/ShieldedLabs/crosslink_monolith/pull/60" }
   - { label: "Open: pull request #59", href: "https://github.com/ShieldedLabs/crosslink_monolith/pull/59" }
+timeline:
+  - { date: "2026-07-08", label: "Self-fork, about 18 hours", note: "The miner mined alone while one watcher checked a pinned checkpoint and another read a frozen source. Every check now compares against a source that is moving." }
+  - { date: "2026-07-18", label: "Double-signing, 4.7 days", note: "An orphaned test process held the finalizer key. A guard now pages if any process outside the production unit holds that directory." }
+  - { date: "2026-08-24", label: "Pull request #60 merged", note: "Upstream fix for future-dated testnet block-template timestamps." }
+  - { date: "2026-09-16", label: "Restart every two hours", note: "Block serving starved the BFT loop while a cache never cleared. Memory grew until the watchdog restarted the node." }
+  - { date: "2026-10-15", label: "Seven-hour outage", note: "The node came back on a private chain. I restored known state, resynced from peers and added a no-peers page." }
 ---
 
 ## The problem

@@ -1,0 +1,84 @@
+---
+// A dated run of incidents, drawn to scale along one line.
+interface Props {
+  events: { date: string; label: string; note: string }[];
+}
+const { events } = Astro.props;
+const times = events.map((e) => new Date(e.date).getTime());
+const start = Math.min(...times);
+const span = Math.max(...times) - start || 1;
+const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+---
+
+<figure class="timeline">
+  <div class="rail" aria-hidden="true">
+    {times.map((t) => <span style={`left:${((t - start) / span) * 100}%`} />)}
+  </div>
+  <ol>
+    {
+      events.map((e) => (
+        <li>
+          <time datetime={e.date}>{fmt.format(new Date(e.date))}</time>
+          <strong>{e.label}</strong>
+          <p>{e.note}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <figcaption>The node's 2026: four failures, what each left behind, and one merged fix.</figcaption>
+</figure>
+
+<style>
+  .timeline {
+    margin: 0;
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    background: var(--wash);
+    border-radius: 14px;
+  }
+  .rail {
+    position: relative;
+    height: 2px;
+    margin: 0.6rem 0.5rem 1.75rem;
+    background: var(--cobalt);
+  }
+  .rail span {
+    position: absolute;
+    top: -6px;
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    border-radius: 50%;
+    background: var(--signal);
+    border: 2px solid var(--cobalt-deep);
+  }
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.25rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  }
+  time {
+    display: block;
+    color: var(--cobalt);
+    font-weight: 650;
+    font-size: var(--step--1);
+  }
+  strong {
+    display: block;
+    margin-top: 0.15rem;
+    font-stretch: 106%;
+    line-height: 1.25;
+  }
+  p {
+    margin-top: 0.35rem;
+    color: var(--ink-2);
+    font-size: var(--step--1);
+  }
+  figcaption {
+    margin-top: 1.25rem;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+</style>

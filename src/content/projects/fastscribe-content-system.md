@@ -20,6 +20,7 @@ diagram:
     - { label: "Deploy and ping", note: "A push to main deploys to production and pings IndexNow." }
 links:
   - { label: "thefastscribe.com", href: "https://thefastscribe.com" }
+shots: [fastscribe-guides-index.png]
 ---
 
 ## The problem

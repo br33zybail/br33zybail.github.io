@@ -17,6 +17,7 @@ diagram:
     - { label: "Pick a hidden cue", note: "A hash of a client seed decides whether this session carries a product cue, so every stateless turn agrees." }
     - { label: "Talk to the prospect", note: "The rep speaks; the AI prospect answers in a stock voice chosen from a server-side allow-list." }
     - { label: "Grade by forced tool", note: "The grader must return five scores through a tool call, one per rubric dimension." }
+screen: roleplay
 ---
 
 ## The problem
