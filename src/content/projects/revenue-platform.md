@@ -34,7 +34,7 @@ At an audit in mid-June the repo had no automated tests. By the end it held abou
 
 The app has five areas:
 
-- Today: a morning briefing, tasks, email cadences and notes.
+- Today: a morning briefing, tasks, email cadences and notes. An agent also reads the calendars of the reps, solutions engineers and the sales leader, and places a shadow invitation beside each customer meeting with a full brief.
 - Queue: a ranked list of who to contact next.
 - Accounts: search, an activity explorer, a page per company, a map, buying signals and contact search.
 - Coach: a playbook, role-play practice and a nightly digest.
