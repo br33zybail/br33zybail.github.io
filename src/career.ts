@@ -5,14 +5,14 @@ export const ROLES = [
     org: 'Optimal Dynamics',
     dates: 'Apr 2026 – Present',
     place: 'New York, hybrid',
-    text: 'First revenue operations hire. Built the function from zero: planning, territories, compensation modelling and CRM governance. Then designed, built and ran, alone, the AI systems the sales team worked in every day: a revenue-intelligence platform of about 200,000 lines with about 7,000 automated tests, agents on a job queue, outbound email drafting behind compliance gates, an MCP connector scoped by row-level security, call-transcript search, and a prospecting pipeline that scores accounts and carves them into territories.',
+    text: 'First revenue operations hire. No revenue operations existed on day one, only reps working alone. Built the function from zero: planning, territories, CRM governance and Salesforce flows. Designed the compensation plans for all 8 account executives, adopted as designed. Built the forecast, which landed within 10% of actual bookings and which the COO and CFO used to set budgets. Produced the quarterly sales and GTM material for the management team and the board, replacing days of manual assembly. Then designed, built and ran, alone, the AI systems the sales team worked in every day: a revenue-intelligence platform of about 200,000 lines with about 7,000 automated tests, agents on a job queue, outbound email drafting behind compliance gates, an MCP connector scoped by row-level security, and call-transcript search.',
   },
   {
     title: 'Analyst, SIGMA Venture Partners',
     org: 'SIGMA Actuarial Consulting Group',
     dates: 'Feb 2020 – Apr 2026',
     place: 'Nashville',
-    text: 'Early-stage fund with a software focus. Evaluated prospective investments, sourced deals and worked on portfolio companies’ go-to-market strategy. Investments include SkyKick, Uplinq, FLYR Labs, Runa HR and ROOM. Half the role was property and casualty actuarial consulting for insurers and risk managers.',
+    text: 'Early-stage fund with a software focus. Sourced and led diligence on six of the fund’s 11 investments: Uplinq, Onward, Tribu, Runa, ROOM and ZenSports. Two of those six have exited. The portfolio as a whole has three exits, two companies valued over $1 billion, and over $350 million in follow-on funding, alongside investors such as Ribbit Capital, Salesforce Ventures and WestCap. Half the role was property and casualty actuarial consulting for insurers and risk managers.',
   },
   {
     title: 'Principal',

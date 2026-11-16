@@ -8,7 +8,7 @@ facts:
   - { label: "Runs", value: "20,000, fixed seed, about 12 seconds" }
   - { label: "Model", value: "stage-ladder Monte Carlo" }
   - { label: "Stack", value: "Python, DuckDB, Postgres" }
-  - { label: "Back-test", value: "not done" }
+  - { label: "Accuracy", value: "within 10% of actual bookings; no formal back-test" }
 diagram:
   type: ladder
   caption: "The stage ladder each simulated deal climbs, with the draws made at each rung."
@@ -54,4 +54,4 @@ I recommended one, wrote the choice and its size into the design, and leadership
 
 ## What it proved
 
-A forecast should show its biggest assumption, not bury it. I did not get to back-test it against a full year of actuals, so its accuracy is unproven.
+A forecast should show its biggest assumption, not bury it. In use it landed within 10% of actual bookings, close for a business with few, large deals, and the COO and CFO set budgets for coming quarters from it. I did not get to a formal back-test across a full year, so that figure is experience, not a study.
